@@ -1,12 +1,14 @@
 import { GraphQLServer } from 'graphql-yoga'
 
-//Operation Arguments
-//Using () next to the query we can add operation arguments
-//Inside the (), we can add as many arguments as we want specifiying the name and type like below
+//Using Arrays
+//For the 'grades' query, we want it to take an array of integers and we provided the '!'
+//so that we will not get 'null' back and always get an array back
+//We changed our 'add' query to take a 'numbers' argument that takes an array of floats
 const typeDefs = `
     type Query {
         greeting(name: String, position: String): String!
-        add(a: Float!, b: Float!): Float!
+        add(numbers: [Float!]!): Float!
+        grades: [Int!]!
         me: User!
         post: Post!
     }
@@ -26,9 +28,10 @@ const typeDefs = `
     }
 `
 
-//Inside the method, we pass in the 4 arguments that graphql provide: parent, args, ctx, and info
-//'args' is an object containing all the arguments we pass in
-//So, for example, I'm getting the 'name' and 'position' using 'args.name' and 'args.position'
+//For our grades resolver, we just retured an array of numbers
+//For our add resolver, we checked to see if length was 0
+//Otherwise, we use the 'reduce' array method to add up any amount of numbers we pass in
+//When we check this in the 'playground', we provide something like this: add(numbers: [1,3,4,6])
 const resolvers = {
     Query: {
         greeting(parent,args,ctx,info) {
@@ -40,7 +43,14 @@ const resolvers = {
             
         },
         add(parent,args,ctx,info) {
-            return args.a + args.b
+            if(args.numbers.length === 0) {
+                return 0
+            }
+
+            return args.numbers.reduce((prev,next) => prev + next )
+        },
+        grades(parent,args,ctx,info) {
+            return [99,80,90]
         },
         me() {
             return {
