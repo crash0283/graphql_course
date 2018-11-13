@@ -4,11 +4,49 @@ import { GraphQLServer } from 'graphql-yoga'
 //For the 'grades' query, we want it to take an array of integers and we provided the '!'
 //so that we will not get 'null' back and always get an array back
 //We changed our 'add' query to take a 'numbers' argument that takes an array of floats
+
+//demo user static data (later this will come from the database)
+const users = [{
+    id: '1',
+    name: 'Chris',
+    email: 'chris@somewhere.com',
+    age: 35
+},
+{
+    id: '2',
+    name: 'Suzanne',
+    email: 'suzanne@somewhere.com'
+},
+{
+    id: '3',
+    name: 'Bob',
+    email: 'bob@somewhere.com',
+    age: 21
+}]
+
+const posts = [{
+    id: '1',
+    title: 'learning javascript',
+    body: 'learned about javascript objects today!',
+    published: true
+},
+{
+    id: '2',
+    title: 'what happened?',
+    body: 'what happened to you today?',
+    published: false
+},
+{
+    id: '3',
+    title: 'out today',
+    body: 'Sorry, I had to leave today to pick up my kids',
+    published: true
+}]
+
 const typeDefs = `
     type Query {
-        greeting(name: String, position: String): String!
-        add(numbers: [Float!]!): Float!
-        grades: [Int!]!
+        users(query: String): [User!]!
+        posts(query: String): [Post!]!
         me: User!
         post: Post!
     }
@@ -34,23 +72,24 @@ const typeDefs = `
 //When we check this in the 'playground', we provide something like this: add(numbers: [1,3,4,6])
 const resolvers = {
     Query: {
-        greeting(parent,args,ctx,info) {
-            if(args.name && args.position) {
-                return `Hello, ${args.name}! You are my favorite ${args.position}`
+        users(parent,args,ctx,info) {
+            if(!args.query) {
+                return users
             } else {
-                return 'Hello!'
+                return users.filter((user) => {
+                    return user.name.toLowerCase().includes(args.query.toLowerCase())
+                })
             }
             
         },
-        add(parent,args,ctx,info) {
-            if(args.numbers.length === 0) {
-                return 0
+        posts(parent,args,ctx,info) {
+            if(!args.query) {
+                return posts
             }
 
-            return args.numbers.reduce((prev,next) => prev + next )
-        },
-        grades(parent,args,ctx,info) {
-            return [99,80,90]
+            return posts.filter((post) => {
+                return post.title.toLowerCase().includes(args.query.toLowerCase()) || post.body.toLowerCase().includes(args.query.toLowerCase())
+            })
         },
         me() {
             return {
