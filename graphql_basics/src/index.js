@@ -28,25 +28,54 @@ const posts = [{
     id: '1',
     title: 'learning javascript',
     body: 'learned about javascript objects today!',
-    published: true
+    published: true,
+    author: '1'
 },
 {
     id: '2',
     title: 'what happened?',
     body: 'what happened to you today?',
-    published: false
+    published: false,
+    author: '2'
 },
 {
     id: '3',
     title: 'out today',
     body: 'Sorry, I had to leave today to pick up my kids',
-    published: true
+    published: true,
+    author: '3'
+}]
+
+const comments = [{
+    id: '1',
+    text: "I love JavaScript.  Best language in my opinion!",
+    author: '1',
+    post: '1'
+},
+{
+    id: '2',
+    text: "Sorry, I had to go to the doctor!:(",
+    author: '2',
+    post: '2'
+},
+{
+    id: '3',
+    text: "Picking up the kids takes sooooooo long!",
+    author: '3',
+    post: '3'
+},
+{
+    id: '4',
+    text: "JavaScript sucks!!",
+    author: '3',
+    post: '1'
 }]
 
 const typeDefs = `
     type Query {
         users(query: String): [User!]!
         posts(query: String): [Post!]!
+        comments: [Comment!]!
         me: User!
         post: Post!
     }
@@ -56,6 +85,8 @@ const typeDefs = `
         name: String!
         email: String!
         age: Int
+        posts: [Post!]!
+        comments: [Comment!]!
     }
 
     type Post {
@@ -63,6 +94,15 @@ const typeDefs = `
         title: String!
         body: String!
         published: Boolean!
+        author: User!
+        comments: [Comment!]!
+    }
+
+    type Comment {
+        id: ID!
+        text: String!
+        author: User!
+        post: Post!
     }
 `
 
@@ -91,6 +131,9 @@ const resolvers = {
                 return post.title.toLowerCase().includes(args.query.toLowerCase()) || post.body.toLowerCase().includes(args.query.toLowerCase())
             })
         },
+        comments(parent,args,ctx,info) {
+            return comments
+        },
         me() {
             return {
                 id: '123098',
@@ -101,11 +144,47 @@ const resolvers = {
         },
         post() {
             return {
-                id: '39sdkd83jf8438nf8i4kd9',
+                id: '3',
                 title: 'GraphQL is cool!',
                 body: "I think I'm going to start using GraphQL now!",
                 published: false
             }
+        }
+    },
+    Post: {
+        author(parent,args,ctx,info) {
+            return users.find((user) => {
+                return user.id === parent.author
+            })
+        },
+        comments(parent,args,ctx,info) {
+            return comments.filter((comment) => {
+                return comment.post === parent.id
+            })
+        }
+    },
+    User: {
+        posts(parent,args,ctx,info) {
+            return posts.filter((post) => {
+                return parent.id === post.author
+            })
+        },
+        comments(parent,args,ctx,info) {
+            return comments.filter((comment) => {
+                return comment.author === parent.id
+            })
+        }
+    },
+    Comment: {
+        author(parent,args,ctx,info) {
+            return users.find((user) => {
+                return user.id === parent.author
+            })
+        },
+        post(parent,args,ctx,info) {
+            return posts.find((post) => {
+                return post.id === parent.author
+            })
         }
     }
 }
